@@ -1,50 +1,55 @@
 using System;
 using System.Drawing;
+using System.Media;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace PomodoroTimer
 {
     public class MainForm : Form
     {
-        private Label timerLabel;
-        private Label statusLabel;
-        private Button startBtn, pauseBtn, stopBtn, resetBtn;
-        private Button workBtn, breakBtn;
-        private FlowLayoutPanel workTimePanel, breakTimePanel;
-        private System.Windows.Forms.Timer timer;
+        private Label timerLabel = null!;
+        private Label statusLabel = null!;
+        private Button startBtn = null!;
+        private Button pauseBtn = null!;
+        private Button stopBtn = null!;
+        private Button resetBtn = null!;
+        private Button workBtn = null!;
+        private Button breakBtn = null!;
+        private FlowLayoutPanel workTimePanel = null!;
+        private FlowLayoutPanel breakTimePanel = null!;
+        private System.Windows.Forms.Timer timer = null!;
 
-        private int workSeconds = 1500;  // 25 минут
-        private int breakSeconds = 300;  // 5 минут
+        private int workSeconds = 1500;
+        private int breakSeconds = 300;
         private int timeLeft;
         private bool isRunning = false;
         private bool isWorkMode = true;
 
-        // Значения для кнопок времени работы
-        private int[] workTimes = { 1, 60, 180, 300, 600, 900, 1200, 1500, 1800, 2700, 3600 };
-        private string[] workLabels = { "1с", "1м", "3м", "5м", "10м", "15м", "20м", "25м", "30м", "45м", "60м" };
+        private readonly int[] workTimes = { 1, 60, 180, 300, 600, 900, 1200, 1500, 1800, 2700, 3600 };
+        private readonly string[] workLabels = { "1с", "1м", "3м", "5м", "10м", "15м", "20м", "25м", "30м", "45м", "60м" };
 
-        // Значения для кнопок времени перерыва
-        private int[] breakTimes = { 1, 60, 180, 300, 600, 900, 1200, 1500, 1800, 2700, 3000, 5400 };
-        private string[] breakLabels = { "1с", "1м", "3м", "5м", "10м", "15м", "20м", "25м", "30м", "45м", "50м", "90м" };
+        private readonly int[] breakTimes = { 1, 60, 180, 300, 600, 900, 1200, 1500, 1800, 2700, 3000, 5400 };
+        private readonly string[] breakLabels = { "1с", "1м", "3м", "5м", "10м", "15м", "20м", "25м", "30м", "45м", "50м", "90м" };
 
         public MainForm()
         {
-            this.Text = "Помодоро Таймер";
-            this.ClientSize = new Size(260, 400);
-            this.FormBorderStyle = FormBorderStyle.FixedSingle;
-            this.MaximizeBox = false;
-            this.StartPosition = FormStartPosition.CenterScreen;
-            this.BackColor = Color.FromArgb(30, 30, 47);
+            Text = "Помодоро Таймер";
+            ClientSize = new Size(260, 400);
+            FormBorderStyle = FormBorderStyle.FixedSingle;
+            MaximizeBox = false;
+            StartPosition = FormStartPosition.CenterScreen;
+            BackColor = Color.FromArgb(30, 30, 47);
 
             timeLeft = workSeconds;
-            InitializeComponents();
+            BuildUI();
             UpdateDisplay();
         }
 
-        private void InitializeComponents()
+        private void BuildUI()
         {
             // Заголовок
-            Label title = new Label
+            var titleLabel = new Label
             {
                 Text = "⏱ Помодоро",
                 ForeColor = Color.White,
@@ -53,10 +58,10 @@ namespace PomodoroTimer
                 Location = new Point(10, 5),
                 Size = new Size(240, 25)
             };
-            this.Controls.Add(title);
+            Controls.Add(titleLabel);
 
-            // Дисплей таймера
-            Label = new Label
+            // Дисплей
+            timerLabel = new Label
             {
                 Text = "25:00",
                 ForeColor = Color.White,
@@ -65,7 +70,7 @@ namespace PomodoroTimer
                 Location = new Point(10, 35),
                 Size = new Size(240, 60)
             };
-            this.Controls.Add(Label);
+            Controls.Add(timerLabel);
 
             // Кнопки режимов
             workBtn = new Button
@@ -80,7 +85,7 @@ namespace PomodoroTimer
             };
             workBtn.FlatAppearance.BorderSize = 0;
             workBtn.Click += (s, e) => SetWorkMode(false);
-            this.Controls.Add(workBtn);
+            Controls.Add(workBtn);
 
             breakBtn = new Button
             {
@@ -94,20 +99,20 @@ namespace PomodoroTimer
             };
             breakBtn.FlatAppearance.BorderSize = 0;
             breakBtn.Click += (s, e) => SetBreakMode(false);
-            this.Controls.Add(breakBtn);
+            Controls.Add(breakBtn);
 
-            // Метка времени работы
-            Label workLabel = new Label
+            // Метка работы
+            var workLabel = new Label
             {
                 Text = "Время работы:",
                 ForeColor = Color.White,
                 Font = new Font("Segoe UI", 8, FontStyle.Bold),
                 Location = new Point(10, 135),
-                Size = new Size(100, 15)
+                Size = new Size(120, 15)
             };
-            this.Controls.Add(workLabel);
+            Controls.Add(workLabel);
 
-            // Панель кнопок времени работы
+            // Панель работы
             workTimePanel = new FlowLayoutPanel
             {
                 Location = new Point(10, 152),
@@ -117,10 +122,10 @@ namespace PomodoroTimer
                 BackColor = Color.Transparent
             };
             CreateTimeButtons(workTimePanel, workTimes, workLabels, true);
-            this.Controls.Add(workTimePanel);
+            Controls.Add(workTimePanel);
 
-            // Метка времени перерыва
-            Label breakLabel = new Label
+            // Метка перерыва
+            var breakLabel = new Label
             {
                 Text = "Время перерыва:",
                 ForeColor = Color.White,
@@ -128,9 +133,9 @@ namespace PomodoroTimer
                 Location = new Point(10, 208),
                 Size = new Size(120, 15)
             };
-            this.Controls.Add(breakLabel);
+            Controls.Add(breakLabel);
 
-            // Панель кнопок времени перерыва
+            // Панель перерыва
             breakTimePanel = new FlowLayoutPanel
             {
                 Location = new Point(10, 225),
@@ -140,24 +145,24 @@ namespace PomodoroTimer
                 BackColor = Color.Transparent
             };
             CreateTimeButtons(breakTimePanel, breakTimes, breakLabels, false);
-            this.Controls.Add(breakTimePanel);
+            Controls.Add(breakTimePanel);
 
-            // Кнопки управления
+            // Управление
             startBtn = CreateControlButton("▶", 15, 290, Color.FromArgb(76, 175, 80));
-            startBtn.Click += Start;
-            this.Controls.Add(startBtn);
+            startBtn.Click += StartTimer;
+            Controls.Add(startBtn);
 
             pauseBtn = CreateControlButton("⏸", 70, 290, Color.FromArgb(255, 152, 0));
-            pauseBtn.Click += Pause;
-            this.Controls.Add(pauseBtn);
+            pauseBtn.Click += PauseTimer;
+            Controls.Add(pauseBtn);
 
             stopBtn = CreateControlButton("⏹", 125, 290, Color.FromArgb(244, 67, 54));
-            stopBtn.Click += Stop;
-            this.Controls.Add(stopBtn);
+            stopBtn.Click += StopTimer;
+            Controls.Add(stopBtn);
 
             resetBtn = CreateControlButton("↺", 180, 290, Color.FromArgb(156, 39, 176));
             resetBtn.Click += ResetAll;
-            this.Controls.Add(resetBtn);
+            Controls.Add(resetBtn);
 
             // Статус
             statusLabel = new Label
@@ -169,16 +174,16 @@ namespace PomodoroTimer
                 Location = new Point(10, 325),
                 Size = new Size(240, 20)
             };
-            this.Controls.Add(statusLabel);
+            Controls.Add(statusLabel);
 
             // Таймер
             timer = new System.Windows.Forms.Timer { Interval = 1000 };
-            timer.Tick += Timer_Tick;
+            timer.Tick += TimerTick;
         }
 
         private Button CreateControlButton(string text, int x, int y, Color color)
         {
-            Button btn = new Button
+            var btn = new Button
             {
                 Text = text,
                 Location = new Point(x, y),
@@ -196,15 +201,15 @@ namespace PomodoroTimer
         {
             for (int i = 0; i < times.Length; i++)
             {
-                int index = i;
-                Button btn = new Button
+                int seconds = times[i];
+                bool isDefault = (isWork && seconds == 1500) || (!isWork && seconds == 300);
+
+                var btn = new Button
                 {
                     Text = labels[i],
-                    Tag = times[i],
+                    Tag = seconds,
                     Size = new Size(32, 22),
-                    BackColor = (isWork && times[i] == 1500) || (!isWork && times[i] == 300)
-                        ? Color.FromArgb(33, 150, 243)
-                        : Color.FromArgb(60, 60, 70),
+                    BackColor = isDefault ? Color.FromArgb(33, 150, 243) : Color.FromArgb(60, 60, 70),
                     ForeColor = Color.White,
                     FlatStyle = FlatStyle.Flat,
                     Font = new Font("Segoe UI", 7)
@@ -217,7 +222,6 @@ namespace PomodoroTimer
                         c.BackColor = Color.FromArgb(60, 60, 70);
                     btn.BackColor = Color.FromArgb(33, 150, 243);
 
-                    int seconds = (int)btn.Tag;
                     if (isWork)
                     {
                         workSeconds = seconds;
@@ -242,7 +246,7 @@ namespace PomodoroTimer
             }
         }
 
-        private void Timer_Tick(object sender, EventArgs e)
+        private void TimerTick(object? sender, EventArgs e)
         {
             timeLeft--;
             UpdateDisplay();
@@ -269,12 +273,12 @@ namespace PomodoroTimer
         {
             for (int i = 0; i < 3; i++)
             {
-                System.Media.SystemSounds.Beep.Play();
-                System.Threading.Thread.Sleep(200);
+                SystemSounds.Beep.Play();
+                Thread.Sleep(200);
             }
         }
 
-        private void StartTimer(object sender, EventArgs e)
+        private void StartTimer(object? sender, EventArgs e)
         {
             if (isRunning) return;
             if (timeLeft <= 0)
@@ -284,21 +288,21 @@ namespace PomodoroTimer
             timer.Start();
         }
 
-        private void PauseTimer(object sender, EventArgs e)
+        private void PauseTimer(object? sender, EventArgs e)
         {
             timer.Stop();
             isRunning = false;
             statusLabel.Text = "⏸ Пауза";
         }
 
-        private void StopTimer(object sender, EventArgs e)
+        private void StopTimer(object? sender, EventArgs e)
         {
             timer.Stop();
             isRunning = false;
             statusLabel.Text = "⏹ Остановлено";
         }
 
-        private void ResetAll(object sender, EventArgs e)
+        private void ResetAll(object? sender, EventArgs e)
         {
             timer.Stop();
             isRunning = false;
@@ -312,17 +316,15 @@ namespace PomodoroTimer
             workBtn.BackColor = Color.FromArgb(76, 175, 80);
             breakBtn.BackColor = Color.FromArgb(60, 60, 70);
 
-            // Сброс выделения кнопок времени
             foreach (Control c in workTimePanel.Controls)
-                c.BackColor = Color.FromArgb(60, 60, 70);
-            foreach (Control c in breakTimePanel.Controls)
-                c.BackColor = Color.FromArgb(60, 60, 70);
+                c.BackColor = (int)(c.Tag ?? 0) == 1500
+                    ? Color.FromArgb(33, 150, 243)
+                    : Color.FromArgb(60, 60, 70);
 
-            // Выделяем стандартные значения
-            foreach (Control c in workTimePanel.Controls)
-                if ((int)c.Tag == 1500) c.BackColor = Color.FromArgb(33, 150, 243);
             foreach (Control c in breakTimePanel.Controls)
-                if ((int)c.Tag == 300) c.BackColor = Color.FromArgb(33, 150, 243);
+                c.BackColor = (int)(c.Tag ?? 0) == 300
+                    ? Color.FromArgb(33, 150, 243)
+                    : Color.FromArgb(60, 60, 70);
         }
 
         private void SetWorkMode(bool autoStart)
@@ -333,7 +335,7 @@ namespace PomodoroTimer
             breakBtn.BackColor = Color.FromArgb(60, 60, 70);
             UpdateDisplay();
             statusLabel.Text = "📋 Режим работы";
-            if (autoStart) StartTimer(null, null);
+            if (autoStart) StartTimer(null, EventArgs.Empty);
         }
 
         private void SetBreakMode(bool autoStart)
@@ -344,7 +346,7 @@ namespace PomodoroTimer
             workBtn.BackColor = Color.FromArgb(60, 60, 70);
             UpdateDisplay();
             statusLabel.Text = "☕ Режим перерыва";
-            if (autoStart) StartTimer(null, null);
+            if (autoStart) StartTimer(null, EventArgs.Empty);
         }
 
         [STAThread]
