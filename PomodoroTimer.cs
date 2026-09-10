@@ -11,7 +11,7 @@ namespace PomodoroTimer
         private Button startBtn, pauseBtn, stopBtn, resetBtn;
         private Button workBtn, breakBtn;
         private FlowLayoutPanel workTimePanel, breakTimePanel;
-        private Timer timer;
+        private System.Windows.Forms.Timer timer;
 
         private int workSeconds = 1500;  // 25 минут
         private int breakSeconds = 300;  // 5 минут
@@ -56,7 +56,7 @@ namespace PomodoroTimer
             this.Controls.Add(title);
 
             // Дисплей таймера
-            timerLabel = new Label
+            Label = new Label
             {
                 Text = "25:00",
                 ForeColor = Color.White,
@@ -65,7 +65,7 @@ namespace PomodoroTimer
                 Location = new Point(10, 35),
                 Size = new Size(240, 60)
             };
-            this.Controls.Add(timerLabel);
+            this.Controls.Add(Label);
 
             // Кнопки режимов
             workBtn = new Button
@@ -144,15 +144,15 @@ namespace PomodoroTimer
 
             // Кнопки управления
             startBtn = CreateControlButton("▶", 15, 290, Color.FromArgb(76, 175, 80));
-            startBtn.Click += StartTimer;
+            startBtn.Click += Start;
             this.Controls.Add(startBtn);
 
             pauseBtn = CreateControlButton("⏸", 70, 290, Color.FromArgb(255, 152, 0));
-            pauseBtn.Click += PauseTimer;
+            pauseBtn.Click += Pause;
             this.Controls.Add(pauseBtn);
 
             stopBtn = CreateControlButton("⏹", 125, 290, Color.FromArgb(244, 67, 54));
-            stopBtn.Click += StopTimer;
+            stopBtn.Click += Stop;
             this.Controls.Add(stopBtn);
 
             resetBtn = CreateControlButton("↺", 180, 290, Color.FromArgb(156, 39, 176));
@@ -172,7 +172,7 @@ namespace PomodoroTimer
             this.Controls.Add(statusLabel);
 
             // Таймер
-            timer = new Timer { Interval = 1000 };
+            timer = new System.Windows.Forms.Timer { Interval = 1000 };
             timer.Tick += Timer_Tick;
         }
 
