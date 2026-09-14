@@ -34,9 +34,9 @@ namespace PomodoroTimer
         private readonly string[] breakLabels = { "1с", "1м", "3м", "5м", "10м", "15м", "20м", "25м", "30м", "45м", "60м", "90м" };
 
         // Размеры кнопок времени
-        private const int TimeBtnWidth = 36;
+        private const int TimeBtnWidth = 34;
         private const int TimeBtnHeight = 22;
-        private const int TimeBtnMargin = 3;
+        private const int TimeBtnMargin = 2;
 
         public MainForm()
         {
